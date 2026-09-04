@@ -10,7 +10,7 @@
 patch.json 的形状（只写新闻里有的字段，其余不用碰）：
 {
   "n": "卢策吾", "sch": "s",                  # 必填，用来定位人；新人也填这两个
-  "status": "founded", "hot": 1, "score": 5,  # 可选
+  "status": "founded", "score": 5,  # 可选。hot 归用户所有，patch 里写了也会被忽略
   "note": "…", "why": "…", "src": "36氪 2026-09-03",
   "cos": [ { "name": "穹彻智能 Noematrix", "role": "联合创始人",
              "stage": "A 轮", "born": "2023.11",

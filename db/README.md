@@ -44,7 +44,7 @@ python3 merge_news.py patch.json                       # 干跑，打印将写�
 python3 merge_news.py patch.json --current current.json # 该人已有 db 覆盖时，先 read_db 拿到它再合
 ```
 
-patch 只写新闻里有的字段（见脚本顶部的注释）。合并规则：
+patch 只写新闻里有的字段（见脚本顶部的注释）。**`hot` 归用户所有，脚本永远不写；`manual:1` 的记录改 `status` 需要 `--force-status`。** 合并规则：
 - 标量覆盖；`fin` 追加（用「 → 」连），不会把旧的轮次冲掉
 - 公司按中文名头匹配（`穹彻智能` ≈ `穹彻智能 Noematrix`），没有就新增
 - 投资方取并集
@@ -67,4 +67,5 @@ patch 只写新闻里有的字段（见脚本顶部的注释）。合并规则�
 `hot` 高潜力与状态正交，**默认全不选**，由维护者手动标；只有 md 报告里明确列为
 「第二梯队 / S 档 / A 档」的人在建库时被预标。
 
-`rebuild_db0.py`：把五份 md 名录里 AI 相关学院的全部教授/AP 并入 DB0 的脚本（可重跑，已有的人不覆盖，只补空字段）。
+`rebuild_db0.py`：把五份 md 名录里 AI 相关学院的全部教授/AP 并入 DB0（可重跑，已有的人只补空字段；`manual:1` 的记录不重算状态、不清高潜力；交大自动化与感知学院已整院排除）。
+`scrape_sjtu.py --refresh`：用缓存页重新解析已抓过的人，覆盖脏的研究方向文本（不上网，`manual` 记录不动）。

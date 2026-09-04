@@ -61,7 +61,7 @@ for d in DB:
     if gl and d["n"] not in gl: lead=("、".join(gl)+"（所长）")+("　·　"+lead if lead else "")
     if lead and d["n"] not in lead: d["lead"]=lead
     elif "lead" in d: del d["lead"]
-ORDER=["n","sch","dept","grp","lead","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","lead","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
 def line(d):
     o={k:d[k] for k in ORDER if k in d and d[k] not in ("",None) and not (k=="hot" and not d[k])}
     o["cos"]=[{kk:vv for kk,vv in c.items() if vv} for c in d.get("cos",[])]
