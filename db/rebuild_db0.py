@@ -39,6 +39,13 @@ def fld_of(txt):
     if re.search(r"量子|能源|聚变|光子|电池",t): return "energy"
     if re.search(r"大模型|语言|NLP|语音|算力|机器学习|深度学习|视觉|智能|推理|数据|系统|检索|图|优化|安全|网络|软件|计算",t): return "ai"
     return "other"
+def dsplit(dept):
+    """名录 dept →（学院, 研究所/分组）。「人工智能学院（兼聘 PI · 核心领域）」这种括号里带「·」的，
+    整段括号才是分组，不能先按「·」切——否则会切出 dept「人工智能学院（兼聘 PI」+ grp「核心领域）」。"""
+    m=re.match(r"^(.+?)[（(](.+)[）)]$",dept)
+    if m and " · " in m.group(2): return m.group(1).strip(),m.group(2).strip()
+    if " · " in dept: b,g=dept.split(" · ",1); return b.strip(),g.strip()
+    return dept,""
 RS=[]   # (sch, name, dept, title, email, home, research, honor, note, src)
 def add(sch,n,dept,title="",email="",home="",research="",honor="",note="",src=""):
     n=cl(n).strip()
@@ -140,19 +147,20 @@ for r in RS:
     k=(r["sch"],r["n"])
     if k in idx:
         d=idx[k]
-        if " · " in r["dept"] and not d.get("grp"):
-            base,g=r["dept"].split(" · ",1)
+        base,g=dsplit(r["dept"])
+        if g and not d.get("grp"):
             if d["dept"]==base or d["dept"].startswith(base[:4]): d["grp"]=g; filled+=1
         for f in ("email","home"):
             if r[f] and not d.get(f): d[f]=r[f]; filled+=1
         if r["research"] and (not d.get("research") or d["research"].startswith("—")): d["research"]=r["research"]; filled+=1
         continue
     if k in seen: continue
-    if (r["sch"],r["dept"].split(" · ")[0]) in EXCLUDE_DEPT: continue
+    if (r["sch"],dsplit(r["dept"])[0]) in EXCLUDE_DEPT: continue
     seen.add(k)
     research=r["research"] or "—（名录未给研究方向，待补）"
     d={"n":r["n"],"sch":r["sch"],"dept":r["dept"],"title":r["title"] or "教师（名录未给职称）"}
-    if " · " in r["dept"]: d["dept"],d["grp"]=r["dept"].split(" · ",1)
+    d["dept"],g=dsplit(r["dept"])
+    if g: d["grp"]=g
     if r["email"]: d["email"]=r["email"]
     if r["home"]: d["home"]=r["home"]
     d["research"]=research
