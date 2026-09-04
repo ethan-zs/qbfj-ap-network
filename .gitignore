@@ -1,0 +1,5 @@
+# 抓取缓存：~20MB 的个人页 HTML，可由 db/scrape_sjtu.py 重新生成
+db/.cache/
+
+# macOS
+.DS_Store
