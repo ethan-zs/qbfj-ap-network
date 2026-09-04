@@ -2212,7 +2212,7 @@ function copy(t,m){
 const LSK="sikao.prof.edits.v1";
 const hid=s=>{let h=2166136261;for(const c of s){h^=c.codePointAt(0);h=Math.imul(h,16777619)>>>0;}return "p"+h.toString(16);};
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
-const EDITABLE=["n","sch","dept","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"];
+const EDITABLE=["n","sch","dept","grp","lead","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"];
 const cleanRec=d=>{const r={};EDITABLE.forEach(k=>{if(d[k]!==undefined&&d[k]!==""&&!(k==="hot"&&!d[k]))r[k]=clone(d[k]);});
   r.cos=(r.cos||[]).filter(c=>c&&c.name).map(c=>{const o={name:c.name,role:c.role||""};
     ["born","stage","fin"].forEach(k=>{if(c[k])o[k]=c[k];}); if(c.inv&&c.inv.length)o.inv=c.inv; return o;});
@@ -2419,6 +2419,7 @@ async function saveDraft(){
   if(isNew(d)&&DB.some(x=>x!==MO.d&&x.sch===d.sch&&x.n===d.n&&!x._added))err.unshift("基线里已有同校同名的「"+d.n+"」，请直接编辑那一条");
   const box=$("#ed-err");
   if(err.length){box.innerHTML="<b>还不能保存：</b>"+err.map(esc).join("；");box.scrollIntoView({block:"nearest"});return;}
+  d.manual=1;                       /* 人改过的记录：脚本重跑时不得重算状态与高潜力 */
   const rec=cleanRec(d);
   if(isNew(MO.d)){
     const u=(MO.d._id&&MO.d._id.indexOf("N:")===0)?MO.d._id.slice(2):uid();
@@ -2435,6 +2436,7 @@ async function quickSet(d,patch){
   if(HASCO(next.status)&&!(next.cos||[]).length){toast("标成创业/成长期项目前先在编辑里加一家公司");return;}
   if(next.status==="potential"&&(next.cos||[]).length){toast("挂着公司的人不能标「待创业」，可改为「水下项目」");return;}
   if(HASCO(next.status))next.score=5;
+  next.manual=1;                    /* 同上 */
   const rec=cleanRec(next);
   if(isNew(d)) await store.put("n"+d._id.slice(2),{kind:"add",uid:d._id.slice(2),at:new Date().toISOString(),rec});
   else await store.put(hid(d._id),{kind:"edit",key:d._id,at:new Date().toISOString(),rec});

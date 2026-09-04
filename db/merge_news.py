@@ -76,10 +76,19 @@ def check(d):
         elif not c.get("role"): m.append("公司「%s」没写角色"%c["name"])
     return m
 
+# 「用户手动改的一律照用户的来」（2026-09-04 定）：
+#   · hot 完全归用户，任何 patch 都不写
+#   · manual 记录的 status 不被 patch 覆盖，除非命令行显式 --force-status
+USER_OWNED={"hot","manual"}
 def merge(base,patch):
     d=json.loads(json.dumps(base))
     for k,v in patch.items():
         if k in ("cos","_id","n","sch"): continue
+        if k in USER_OWNED: continue
+        if k=="status" and d.get("manual") and "--force-status" not in sys.argv:
+            if v!=d.get("status"):
+                print("  · 保留用户手动状态「%s」（新闻建议 %s；要覆盖加 --force-status）"%(d.get("status"),v))
+            continue
         if v not in (None,""): d[k]=v
     cos=d.get("cos") or []
     for pc in patch.get("cos") or []:
@@ -96,13 +105,13 @@ def merge(base,patch):
             if x and x not in inv: inv.append(x)
         if inv: tgt["inv"]=inv
     d["cos"]=cos
-    if d["cos"] and d.get("status")=="potential": d["status"]="stealth"
+    if d["cos"] and d.get("status")=="potential" and not d.get("manual"): d["status"]="stealth"
     if d.get("status") in ("growth","founded"): d["score"]=5
-    d["hot"]=1 if d.get("hot") else 0
+    d["hot"]=1 if d.get("hot") else 0          # 只做归一，值始终来自用户
     return d
 
 def clean(d):
-    keep=["n","sch","dept","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+    keep=["n","sch","dept","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
     r={k:d[k] for k in keep if k in d and d[k] not in (None,"") and not (k=="hot" and not d[k])}
     r["cos"]=[{k:v for k,v in c.items() if v} for c in (d.get("cos") or []) if c.get("name")]
     if not r["cos"]: del r["cos"]

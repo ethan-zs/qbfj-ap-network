@@ -176,6 +176,7 @@ OVR={("s","张少霆"):("growth","商汤分拆主体，分拆后半年融资 10 
 recls=[]
 for d in DB:
     k=(d["sch"],d["n"])
+    if d.get("manual"): continue          # 用户手动判定过的，脚本不得重算
     if d["status"]=="founded":
         if k in OVR:
             st,why=OVR[k]
@@ -186,12 +187,15 @@ for d in DB:
             if hits: d["status"]="growth"; recls.append((d["n"],"growth","轮次标记 "+"/".join(hits)))
 # ── 高潜力：全部清零，只按 md 明确标注预标 ──
 cleared=sum(1 for d in DB if d.get("hot"))
-for d in DB: d["hot"]=0
+# 高潜力默认全不选、由用户手动标；但 manual 记录保留用户自己的标注
+for d in DB:
+    if not d.get("manual"): d["hot"]=0
 hotset=[]
 for d in DB:
+    if d.get("manual"): continue
     if (d["sch"],d["n"]) in HOT: d["hot"]=1; hotset.append(d["n"])
 # ── 写回 ──
-ORDER=["n","sch","dept","grp","lead","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","lead","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
 def line(d):
     o={}
     for k in ORDER:
