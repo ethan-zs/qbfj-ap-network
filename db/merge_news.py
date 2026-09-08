@@ -65,7 +65,7 @@ def head(nm):
     return "".join(o) or nm
 
 def check(d):
-    m=[k for k in ["n","sch","dept","title","research","fld","status"] if not d.get(k)]
+    m=[k for k in ["n","sch","dept","fld","status"] if not d.get(k)]      # title / research 可空（页面显示「待补」）
     if d.get("fld") and d["fld"] not in FLD: m.append("fld 非法")
     if d.get("status") and d["status"] not in STAT: m.append("status 非法")
     if not (1<=int(d.get("score") or 0)<=5): m.append("score 必须 1-5")

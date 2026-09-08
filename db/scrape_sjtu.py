@@ -44,7 +44,9 @@ def parse(name,body):
     m=re.search(re.escape(name)+r".{0,80}?"+TITLE.pattern,t) or TITLE.search(t)
     if m: out["title"]=m.group(1) if m.lastindex else m.group(0)
     e=re.search(r"[\w.+-]+(?:@|\(at\)|\[at\]|＠)\s?(?:sjtu|cs\.sjtu)\.edu\.cn",t)
-    if e: out["email"]=e.group(0).replace("(at)","@").replace("[at]","@").replace("＠","@").replace(" ","")
+    if e:
+        m=e.group(0).replace("(at)","@").replace("[at]","@").replace("＠","@").replace(" ","")
+        if not re.match(r"^(scs|cs|admin|office|info|hr|contact|xb|bgs|jwc|yjs|master|phd)@",m): out["email"]=m   # 学院公共邮箱（scs@ 等）不是个人邮箱，曾误给 7 人
     r=re.search(r"(?:研究方向|研究领域|研究兴趣|Research Interests?)[:：]?\s*(.+?)(?:"+STOP+r"|$)",t)
     if r:
         rs=clean_research(r.group(1))
