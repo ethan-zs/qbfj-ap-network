@@ -22,11 +22,24 @@ Claude 用 Artifact 工具 `read_db`（`collection: "profs"`, `db_op: "list"`）
 - `edit`：按 `key`（教授 `_id`）整条覆盖源文件 `DB0` 里的那条。
 - `add`：新增的人，页面里 id 为 `"N:"+uid`。
 
-## 把改动合回源文件（固化）
+## 把改动合回源文件（固化）—— `merge_back.py`
 
-把 `profs.json` 发给 Claude，让它按上面规则合进 `QBFJ AP Network.html` 的 `DB0`，
-重新发布，然后用 `write_db` 的 `delete` 把已固化的记录从 db 里清掉——
-否则页面会把同样的改动再覆盖一遍（结果一样，但「已修改」标记会一直挂着）。
+在 Claude Code 里说「合回」或 `/qbfj-sync`，顺序固定：
+`read_db list` 写成 `profs.json` → `python3 db/merge_back.py --dry-run` 看清单 → `python3 db/merge_back.py`
+→ 发布页面 → `write_db` 批量 delete（脚本会打印清单）→ `python3 db/merge_back.py --clear-snapshot` → commit。
+
+脚本规则：每条合回的记录带 `manual:1`；`edit` 以页面表单字段为准（`grp/lead/manual` 缺失则保留）；
+`add` 撞上同校同名的 DB0 行就并进去（名录导入过的人在页面再加一次会撞上），否则追加新行；
+`dept` 变了会丢掉旧 `grp/lead`，随后自动跑 `enrich_org.py` 重新拆分、挂院长；校验同页面，不过不写。
+合并前的快照按日期存档在 `merged/`。先删文档再发布会让线上短暂丢改动，所以**先发布、再删**。
+
+## 查人 / 查机构 —— `find.py`
+
+```bash
+python3 db/find.py 卢策吾 王鹤          # DB0 行、_id、edit 文档 id、快照里的覆盖、同名提醒
+python3 db/find.py --sch t 刘洋
+python3 db/find.py --inv 顺为资本 高瓴   # 投过谁、规范写法、是否登记了产业资本/国资/校属基金
+```
 
 ## 本地打开 HTML 时
 
@@ -34,7 +47,7 @@ Claude 用 Artifact 工具 `read_db`（`collection: "profs"`, `db_op: "list"`）
 工具条上显示红色「仅存本浏览器」。这时的增改和 db 互不相通。
 要看到共享数据，请用 artifact 链接打开。
 
-## 贴新闻 → 自动更新（merge_news.py）
+## 贴新闻 → 自动更新（merge_news.py，在 Claude Code 里用 `/qbfj-news`）
 
 流程：把新闻稿贴给 Claude → Claude 认人、抽字段，写成一个小 patch → `merge_news.py` 把 patch
 合进该教授的**完整记录**并算出文档 id → Claude 用 Artifact 工具 `write_db set` 写进 `profs`
