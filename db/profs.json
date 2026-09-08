@@ -1,7 +1,7 @@
 {
  "artifact": "https://claude.ai/code/artifact/211e3d3e-7d7f-4de5-adcb-1625832c1ff4",
  "collection": "profs",
- "snapshotAt": "2026-09-04T18:53:36",
- "note": "artifact db 的快照，不自动更新。刷新方式见本目录 README.md。2026-09-04 四条覆盖记录已合回 DB0（见 merged/2026-09-04_profs.json），当前集合为空。",
+ "snapshotAt": "2026-09-08T16:47:10",
+ "note": "artifact db 的快照，不自动更新。刷新方式见本目录 README.md。覆盖层已合回 DB0（见 merged/），当前集合为空。",
  "docs": []
 }

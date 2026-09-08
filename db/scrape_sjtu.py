@@ -65,7 +65,7 @@ with ThreadPoolExecutor(8) as ex:
         if p.get("email") and not d.get("email"): d["email"]=p["email"]; filled["email"]+=1
         if not d.get("home"): d["home"]=url
         if "主页抓取" not in d.get("src",""): d["src"]=(d.get("src","")+"；" if d.get("src") else "")+"主页抓取 2026-09"
-ORDER=["n","sch","dept","grp","lead","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","why","note","src","cos"]
 def line(d):
     o={k:d[k] for k in ORDER if k in d and d[k] not in ("",None) and not (k=="hot" and not d[k])}
     o["cos"]=[{kk:vv for kk,vv in c.items() if vv} for c in d.get("cos",[])]

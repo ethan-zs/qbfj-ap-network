@@ -56,8 +56,8 @@ def show_person(db,docs,snap_at,name,sch=None):
     for d in rows:
         did=hid(d["_id"])
         print("%s（%s）_id=%s  edit 文档 id=%s"%(d["n"],SCH[d["sch"]],d["_id"],did))
-        print("   %s%s · %s · %s%s · score %s%s"%(d.get("dept",""),(" › "+d["grp"]) if d.get("grp") else "",d.get("title",""),
-              d.get("status",""),(" · 高潜力") if d.get("hot") else "",d.get("score"),(" · manual") if d.get("manual") else ""))
+        print("   %s%s · %s · %s%s%s"%(d.get("dept",""),(" › "+d["grp"]) if d.get("grp") else "",d.get("title","") or "职称待补",
+              d.get("status",""),(" · 高潜力") if d.get("hot") else "",(" · manual") if d.get("manual") else ""))
         ld=lead_for(db,d)
         if ld: print("   院长/所长（页面运行时推算）：%s"%ld)
         for c in d.get("cos") or []:

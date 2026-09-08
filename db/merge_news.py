@@ -10,7 +10,7 @@
 patch.json 的形状（只写新闻里有的字段，其余不用碰）：
 {
   "n": "卢策吾", "sch": "s",                  # 必填，用来定位人；新人也填这两个
-  "status": "founded", "score": 5,  # 可选。hot 归用户所有，patch 里写了也会被忽略
+  "status": "founded",              # 可选。hot 归用户所有，patch 里写了也会被忽略
   "note": "…", "why": "…", "src": "36氪 2026-09-03",
   "cos": [ { "name": "穹彻智能 Noematrix", "role": "联合创始人",
              "stage": "A 轮", "born": "2023.11",
@@ -21,7 +21,7 @@ patch.json 的形状（只写新闻里有的字段，其余不用碰）：
   - 标量字段：新闻里有就覆盖（fin 例外：追加，用「 → 」连接）
   - cos 按公司名匹配（中文名头相同即视为同一家）；没有就新增一家
   - status 四态：growth 成长期(B 轮以后) / founded 创业项目(B 轮及之前有融资新闻) / stealth 水下(无融资新闻) / potential 待创业
-  - growth/founded 则 score 固定 5；挂着公司的人不能是 potential（自动改 stealth）
+  - 挂着公司的人不能是 potential（自动改 stealth）
   - 新闻里轮次是 B+/C/D/IPO/被收购 → 写 status:"growth"；B 轮及之前 → "founded"
   - 校验规则与页面 checkRec() 一致，不过就不产出
 """
@@ -68,7 +68,6 @@ def check(d):
     m=[k for k in ["n","sch","dept","fld","status"] if not d.get(k)]      # title / research 可空（页面显示「待补」）
     if d.get("fld") and d["fld"] not in FLD: m.append("fld 非法")
     if d.get("status") and d["status"] not in STAT: m.append("status 非法")
-    if not (1<=int(d.get("score") or 0)<=5): m.append("score 必须 1-5")
     cos=d.get("cos") or []
     if d.get("status") in ("growth","founded") and not cos: m.append("创业/成长期项目却没有公司")
     for c in cos:
@@ -106,12 +105,11 @@ def merge(base,patch):
         if inv: tgt["inv"]=inv
     d["cos"]=cos
     if d["cos"] and d.get("status")=="potential" and not d.get("manual"): d["status"]="stealth"
-    if d.get("status") in ("growth","founded"): d["score"]=5
     d["hot"]=1 if d.get("hot") else 0          # 只做归一，值始终来自用户
     return d
 
 def clean(d):
-    keep=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]   # grp 必须在：页面覆盖时会先删掉可编辑字段再赋 rec，漏了就把研究所抹掉
+    keep=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","why","note","src","cos"]   # grp 必须在：页面覆盖时会先删掉可编辑字段再赋 rec，漏了就把研究所抹掉
     r={k:d[k] for k in keep if k in d and d[k] not in (None,"") and not (k=="hot" and not d[k])}
     r["cos"]=[{k:v for k,v in c.items() if v} for c in (d.get("cos") or []) if c.get("name")]
     if not r["cos"]: del r["cos"]
@@ -138,7 +136,7 @@ def main():
         else:
             uid="".join(random.choice("abcdefghijklmnopqrstuvwxyz0123456789") for _ in range(8))+format(int(time.time()),"x")[-4:]
             base={"n":patch["n"],"sch":patch["sch"],"dept":"","title":"","research":"","fld":"other",
-                  "status":"potential","hot":0,"score":3,"cos":[]}
+                  "status":"potential","hot":0,"cos":[]}
         merged=merge(base,patch); kind="add"
         doc_id="n"+uid; body={"kind":"add","uid":uid,"at":now,"rec":clean(merged)}
     errs=check(body["rec"])

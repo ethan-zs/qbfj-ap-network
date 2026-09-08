@@ -30,9 +30,9 @@ from merge_news import assign_ids,check,head          # 与贴新闻脚本共用
 HTML_DEFAULT=os.path.normpath(os.path.join(HERE,"..","QBFJ AP Network.html"))
 SNAP_DEFAULT=os.path.join(HERE,"profs.json")
 ARTIFACT="https://claude.ai/code/artifact/211e3d3e-7d7f-4de5-adcb-1625832c1ff4"
-ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
-DROP={"lead"}                                          # 旧字段：2026-09-04 起院长/所长由页面运行时推算，快照里若还有就丢掉
-PAGE_EDITABLE=["n","sch","dept","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","why","note","src","cos"]
+DROP={"lead","score"}                                  # 旧字段：lead 由页面运行时推算；score（创业可能性评分）2026-09-04 整个模块删除
+PAGE_EDITABLE=["n","sch","dept","title","email","home","research","honor","fld","status","hot","why","note","src","cos"]
 SCH={"s":"上海交通大学","f":"复旦大学","t":"清华大学","p":"北京大学"}
 
 def load_html(path):
@@ -130,7 +130,6 @@ def new_row(rec):
     new["cos"]=norm_cos(rec.get("cos"))
     if not rec.get("hot"): new.pop("hot",None)
     new.setdefault("src","页面内添加")
-    new.setdefault("score",5 if new.get("status") in ("growth","founded") else 3)
     new["manual"]=1
     return new
 
@@ -218,7 +217,7 @@ def main():
         shutil.copyfile(snap_path,dst); print("快照已存档 → %s"%os.path.relpath(dst))
     if not no_enrich and (changed or appended):
         if os.path.normpath(html_path)==HTML_DEFAULT:
-            print("跑 enrich_org.py 补 dept/grp/lead …"); subprocess.run([sys.executable,os.path.join(HERE,"enrich_org.py")],check=True)
+            print("跑 enrich_org.py 拆 dept/grp …"); subprocess.run([sys.executable,os.path.join(HERE,"enrich_org.py")],check=True)
         else: print("（--html 指向非默认页面，跳过 enrich_org.py）")
     print("\n下一步：\n  1. 发布页面（Artifact publish，带 url，不传 capabilities）\n  2. 发布成功后删掉这些文档（write_db batch）：")
     print("     "+json.dumps([{"op":"delete","collection":"profs","doc_id":d} for d in dels],ensure_ascii=False))

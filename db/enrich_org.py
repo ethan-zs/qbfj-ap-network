@@ -50,7 +50,7 @@ for d in DB:
     dept,grp=split(d["sch"],d["dept"]); d["dept"]=dept
     if grp: d["grp"]=grp                       # 拆出新的才覆盖；dept 已干净时保留原有 grp（幂等）
     d.pop("lead",None)                         # 旧字段，2026-09-04 起由页面运行时推算
-ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","why","note","src","cos"]
 def line(d):
     o={k:d[k] for k in ORDER if k in d and d[k] not in ("",None) and not (k=="hot" and not d[k])}
     o["cos"]=[{kk:vv for kk,vv in c.items() if vv} for c in d.get("cos",[])]
