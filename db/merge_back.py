@@ -15,12 +15,12 @@
 规则（§18.4 + 2026-09-04 第一次合回时定下的）：
   - 合回的每条记录一律带 manual:1。
   - edit：按 key 找到 DB0 行。页面表单能改的字段以 rec 为准（rec 里没有 = 用户清空了，包括 hot）；
-    grp / lead / manual 三个字段早期文档没有，rec 没有就保留 DB0 的；
+    grp / manual 两个字段早期文档没有，rec 没有就保留 DB0 的；
     rec.dept 等于「dept + 空格/· + grp」的合写形式时视为没改 dept。
   - add：同校同名已在 DB0（名录导入后常见）→ 合并进那一行：rec 有的字段覆盖，没有的保留；
     honor 取超集或用「；」拼接；hot 只加不减；公司按中文名头匹配、投资方取并集。
     DB0 里没有 → 追加为新行。
-  - dept 变了就丢掉旧的 grp / lead，交给 enrich_org.py 重新拆分、挂院长（LEADS 表在它里面）。
+  - dept 变了就丢掉旧的 grp，交给 enrich_org.py 重新拆分。院长 / 所长不是字段，页面运行时按 LEADS 表推算。
   - 校验与页面 checkRec 一致，不过就不写（--force 可硬写，页面会在控制台点名）。
 """
 import io,json,os,sys,shutil,subprocess,time
@@ -30,7 +30,8 @@ from merge_news import assign_ids,check,head          # 与贴新闻脚本共用
 HTML_DEFAULT=os.path.normpath(os.path.join(HERE,"..","QBFJ AP Network.html"))
 SNAP_DEFAULT=os.path.join(HERE,"profs.json")
 ARTIFACT="https://claude.ai/code/artifact/211e3d3e-7d7f-4de5-adcb-1625832c1ff4"
-ORDER=["n","sch","dept","grp","lead","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+ORDER=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+DROP={"lead"}                                          # 旧字段：2026-09-04 起院长/所长由页面运行时推算，快照里若还有就丢掉
 PAGE_EDITABLE=["n","sch","dept","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
 SCH={"s":"上海交通大学","f":"复旦大学","t":"清华大学","p":"北京大学"}
 
@@ -54,6 +55,7 @@ def load_snapshot(path):
     return out,(s.get("snapshotAt") if isinstance(s,dict) else None)
 
 def line(d):
+    for k in DROP: d.pop(k,None)
     extra=set(d)-set(ORDER)-{"_id"}
     if extra: raise SystemExit("✗ %s 有未知字段 %s，不写"%(d.get("n"),sorted(extra)))
     o={k:d[k] for k in ORDER if k in d and d[k] not in ("",None) and not (k=="hot" and not d[k])}
@@ -96,7 +98,7 @@ def apply_edit(row,rec):
             if rec.get("hot"): new["hot"]=1
         elif k=="cos": new["cos"]=norm_cos(rec.get("cos"))
         elif rec.get(k) not in ("",None): new[k]=rec[k]
-    for k in ("grp","lead"):
+    for k in ("grp",):
         if rec.get(k): new[k]=rec[k]
         elif same and row.get(k): new[k]=row[k]
     new["manual"]=1
@@ -117,8 +119,8 @@ def apply_add_into(row,rec):
             if rec.get("honor"): new["honor"]=merge_honor(row.get("honor"),rec["honor"])
         elif rec.get(k) not in ("",None): new[k]=rec[k]
     if not same:
-        for k in ("grp","lead"): new.pop(k,None)
-    for k in ("grp","lead"):
+        for k in ("grp",): new.pop(k,None)
+    for k in ("grp",):
         if rec.get(k): new[k]=rec[k]
     new["manual"]=1
     row.clear(); row.update(new); return "add 并入同校同名行"

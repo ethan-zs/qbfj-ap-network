@@ -111,7 +111,7 @@ def merge(base,patch):
     return d
 
 def clean(d):
-    keep=["n","sch","dept","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]
+    keep=["n","sch","dept","grp","manual","title","email","home","research","honor","fld","status","hot","score","why","note","src","cos"]   # grp 必须在：页面覆盖时会先删掉可编辑字段再赋 rec，漏了就把研究所抹掉
     r={k:d[k] for k in keep if k in d and d[k] not in (None,"") and not (k=="hot" and not d[k])}
     r["cos"]=[{k:v for k,v in c.items() if v} for c in (d.get("cos") or []) if c.get("name")]
     if not r["cos"]: del r["cos"]

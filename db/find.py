@@ -31,6 +31,25 @@ def registry():
     alias=json.loads("{"+grab(r"const IALIAS=\{(.*?)\};")+"}")
     return corp,state,fund,alias
 
+def leads():
+    h=io.open(HTML,encoding="utf-8").read()
+    m=re.search(r"const LEADS=\{(.*?)\};",h,re.S)
+    return json.loads("{"+m.group(1)+"}") if m else {}
+def head_label(t):
+    t=t or ""
+    return "所长/副所长" if "所长/副所长" in t else ("" if "副所长" in t else ("所长" if "所长" in t else ""))
+def lead_for(db,d):                        # 与页面 leadFor() 同一规则
+    L=leads(); dept=d.get("dept") or "未注明学院"; grp=d.get("grp") or ""
+    by={}
+    if grp:
+        for x in db:
+            if x["sch"]==d["sch"] and (x.get("dept") or "未注明学院")==dept and (x.get("grp") or "")==grp and x["n"]!=d["n"]:
+                l=head_label(x.get("title"))
+                if l: by.setdefault(l,[]).append(x["n"])
+    heads="、".join("、".join(v)+"（"+k+"）" for k,v in by.items())
+    dl=L.get(d["sch"]+"|"+dept,""); dl="" if dl and d.get("n") and d["n"] in dl else dl
+    return heads+("　·　" if heads and dl else "")+dl
+
 def show_person(db,docs,snap_at,name,sch=None):
     rows=[d for d in db if d["n"]==name and (not sch or d["sch"]==sch)]
     if not rows: print("%s：DB0 里没有%s"%(name,"（%s）"%SCH[sch] if sch else ""));
@@ -39,7 +58,8 @@ def show_person(db,docs,snap_at,name,sch=None):
         print("%s（%s）_id=%s  edit 文档 id=%s"%(d["n"],SCH[d["sch"]],d["_id"],did))
         print("   %s%s · %s · %s%s · score %s%s"%(d.get("dept",""),(" › "+d["grp"]) if d.get("grp") else "",d.get("title",""),
               d.get("status",""),(" · 高潜力") if d.get("hot") else "",d.get("score"),(" · manual") if d.get("manual") else ""))
-        if d.get("lead"): print("   院长/所长：%s"%d["lead"])
+        ld=lead_for(db,d)
+        if ld: print("   院长/所长（页面运行时推算）：%s"%ld)
         for c in d.get("cos") or []:
             print("   公司：%s · %s%s%s"%(c["name"],c.get("role",""),(" · "+c["stage"]) if c.get("stage") else "",(" · 投资方 "+"、".join(c["inv"])) if c.get("inv") else ""))
         if d.get("src"): print("   来源：%s"%d["src"])
